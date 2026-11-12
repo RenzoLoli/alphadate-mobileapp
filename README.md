@@ -1,56 +1,201 @@
-# Welcome to your Expo app 👋
+# Alphadate
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Aplicación móvil para organizar citas basadas en las letras del abecedario. Permite crear, editar y eliminar citas, marcar su estado y consultar recomendaciones para completar las letras pendientes.
 
-## Get started
+## Tabla de contenidos
 
-1. Install dependencies
+- [Características](#caracteristicas)
+- [Tecnologías](#tecnologias)
+- [Requisitos](#requisitos)
+- [Instalación](#instalacion)
+- [Configuración](#configuracion)
+- [Ejecución](#ejecucion)
+- [Scripts disponibles](#scripts-disponibles)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Autenticación y API](#autenticacion-y-api)
+- [Calidad de código](#calidad-de-codigo)
+- [Licencia](#licencia)
 
-   ```bash
-   npm install
-   ```
+## Características
 
-2. Start the app
+- Registro e inicio de sesión con correo electrónico y contraseña.
+- Autenticación mediante Amazon Cognito.
+- Creación, edición y eliminación de citas.
+- Organización de citas por letra del abecedario.
+- Seguimiento de citas pendientes y completadas.
+- Recomendaciones para descubrir nuevas citas.
+- Ruleta para elegir una letra disponible.
+- Opciones para compartir el contenido de Alphadate.
+- Preferencia de apariencia clara u oscura.
 
-   ```bash
-   npx expo start
-   ```
+## Tecnologías
 
-In the output, you'll find options to open the app in a
+| Tecnología | Uso |
+| --- | --- |
+| Expo SDK 57 | Entorno de desarrollo y compilación |
+| Expo Router | Navegación basada en archivos |
+| React 19 | Interfaz de usuario |
+| React Native 0.86 | Aplicación móvil |
+| TypeScript | Tipado estático |
+| AWS Amplify 6 | Integración de autenticación |
+| Amazon Cognito | Gestión de usuarios y sesiones |
+| Axios | Peticiones HTTP |
+| NativeWind 4 | Estilos con utilidades de Tailwind CSS |
+| React Native Reanimated | Animaciones |
+| React Native Gesture Handler | Gestos |
+| React Native Safe Area Context | Adaptación a áreas seguras |
+| Lucide React Native | Iconografía |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Requisitos
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Node.js y npm.
+- Un User Pool de Amazon Cognito y un App Client configurado.
+- Una API de Alphadate accesible desde el dispositivo.
+- Android Studio y Android SDK para ejecutar en Android.
+- macOS y Xcode para ejecutar en iOS.
+- Un navegador compatible para ejecutar la versión web.
 
-## Get a fresh project
+## Instalación
 
-When you're ready, run:
+Clona el repositorio e instala las dependencias:
 
 ```bash
-npm run reset-project
+git clone <URL_DEL_REPOSITORIO>
+cd alphadate-mobileapp
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Crea el archivo de variables de entorno a partir del ejemplo:
 
-### Other setup steps
+```bash
+cp .env.example .env
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Configuración
 
-## Learn more
+Configura las siguientes variables en el archivo `.env` ubicado en la raíz del proyecto:
 
-To learn more about developing your project with Expo, look at the following resources:
+```dotenv
+EXPO_PUBLIC_API_URL=https://tu-api.example.com
+EXPO_PUBLIC_COGNITO_CLIENT_ID=tu_cognito_app_client_id
+EXPO_PUBLIC_COGNITO_POOL_ID=tu_cognito_user_pool_id
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+| Variable | Descripción |
+| --- | --- |
+| `EXPO_PUBLIC_API_URL` | URL base de la API de Alphadate. |
+| `EXPO_PUBLIC_COGNITO_CLIENT_ID` | ID del App Client del User Pool de Cognito. |
+| `EXPO_PUBLIC_COGNITO_POOL_ID` | ID del User Pool de Cognito. |
 
-## Join the community
+Las variables llevan el prefijo `EXPO_PUBLIC_` porque se utilizan en el código cliente y pueden quedar incluidas en el bundle de la aplicación. No guardes secretos, claves privadas ni credenciales sensibles en ellas.
 
-Join our community of developers creating universal apps.
+Asegúrate de que `.env.example` incluya las mismas variables necesarias para configurar el proyecto desde cero.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Ejecución
+
+Inicia el servidor de desarrollo de Expo:
+
+```bash
+npm run start
+```
+
+También puedes ejecutar la aplicación directamente en una plataforma:
+
+```bash
+npm run android
+npm run ios
+npm run web
+```
+
+Los comandos `android` e `ios` requieren que sus respectivos entornos nativos estén instalados y configurados.
+
+## Scripts disponibles
+
+| Comando | Descripción |
+| --- | --- |
+| `npm run start` | Inicia el servidor de desarrollo de Expo. |
+| `npm run android` | Compila e inicia la aplicación en Android. |
+| `npm run ios` | Compila e inicia la aplicación en iOS. |
+| `npm run web` | Inicia la versión web. |
+| `npm run lint` | Ejecuta Expo Lint. |
+| `npm run format` | Aplica Prettier a los archivos compatibles del proyecto. |
+| `npm run clear` | Elimina la caché local de Expo y las cachés temporales de Metro y Watchman. No inicia el servidor. |
+
+Para limpiar las cachés y después iniciar Expo manualmente:
+
+```bash
+npm run clear
+npm run start
+```
+
+## Estructura del proyecto
+
+```text
+.
+├── assets/
+│   └── images/                  # Iconos, splash screen y recursos gráficos
+├── src/
+│   ├── app/                     # Rutas y pantallas de Expo Router
+│   │   ├── (tabs)/              # Pestañas principales
+│   │   ├── _layout.tsx          # Layout raíz y protección de rutas
+│   │   ├── index.tsx            # Redirección según la sesión
+│   │   ├── login.tsx            # Inicio de sesión
+│   │   └── register.tsx         # Registro
+│   ├── components/
+│   │   ├── home/                # Componentes de citas y recomendaciones
+│   │   ├── settings/            # Componentes de ajustes
+│   │   ├── shared/              # Componentes compartidos
+│   │   └── ui/                  # Componentes de interfaz reutilizables
+│   ├── constants/
+│   │   └── config/              # Configuración de servicios
+│   ├── hooks/                   # Hooks de la aplicación
+│   ├── lib/
+│   │   ├── services/
+│   │   │   ├── api/             # Cliente HTTP, servicios y modelos
+│   │   │   └── storage/         # Persistencia local
+│   │   ├── utils/               # Funciones auxiliares
+│   │   └── theme.ts             # Tema de navegación
+│   ├── providers/               # Context providers
+│   └── global.css               # Estilos globales
+├── .env.example
+├── app.json
+├── package.json
+└── README.md
+```
+
+## Autenticación y API
+
+La autenticación se integra mediante AWS Amplify y Amazon Cognito. La navegación de la aplicación tiene en cuenta el estado de la sesión.
+
+El cliente HTTP utiliza `EXPO_PUBLIC_API_URL` como URL base, configura un tiempo de espera de 10 segundos y adjunta el access token de Cognito como token Bearer cuando existe una sesión.
+
+### Endpoints utilizados
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/alphabets/dates` | Obtiene las citas del usuario. |
+| `POST` | `/alphabets/dates` | Crea una cita. |
+| `PUT` | `/alphabets/dates/:dateId` | Actualiza una cita o su estado. |
+| `DELETE` | `/alphabets/dates/:dateId` | Elimina una cita. |
+| `GET` | `/alphabets/recommendations` | Obtiene recomendaciones. |
+
+La API debe implementar estos endpoints y respetar los modelos de datos definidos por el cliente en `src/lib/services/api/`.
+
+## Calidad de código
+
+Ejecuta el linter antes de integrar cambios:
+
+```bash
+npm run lint
+```
+
+Para aplicar el formato del proyecto:
+
+```bash
+npm run format
+```
+
+## Licencia
+
+El proyecto indica utilizar la licencia MIT. Consulta el archivo [`LICENSE`](./LICENSE) si está disponible en el repositorio.
+
