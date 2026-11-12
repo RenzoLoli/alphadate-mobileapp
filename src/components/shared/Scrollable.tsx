@@ -7,7 +7,7 @@ type Props = {
   onRefresh?: () => void;
 };
 
-export default function ScreenLayout({
+export default function Scrollable({
   children,
   className = "",
   onRefresh,

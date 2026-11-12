@@ -18,7 +18,7 @@ import {
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import ThemeToggle from "@/components/theme-toggle";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
