@@ -4,6 +4,7 @@ import { PortalHost } from "@rn-primitives/portal";
 import { Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import "@/constants/config/amplify";
 import "@/global.css";
@@ -44,14 +45,13 @@ function AppStack() {
 
 export default function RootLayout() {
   return (
-    // Required by react-native-gesture-handler. Without this, the swipeable
-    // date cards never receive gestures, most visibly on Android.
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <AppStack />
-      </AuthProvider>
-      {/* Mount point for @rn-primitives portals (dialogs, alert dialogs). */}
-      <PortalHost />
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
+          <AppStack />
+        </AuthProvider>
+        <PortalHost />
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

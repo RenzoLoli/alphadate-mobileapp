@@ -19,25 +19,25 @@ export interface AccountInfo {
 }
 
 const MONTHS = [
-  "Jan",
+  "Ene",
   "Feb",
   "Mar",
-  "Apr",
+  "Abr",
   "May",
   "Jun",
   "Jul",
-  "Aug",
+  "Ago",
   "Sep",
   "Oct",
   "Nov",
-  "Dec",
+  "Dic",
 ];
 
 function formatLastConnection(date: Date): string {
   const hours = String(date.getHours()).padStart(2, "0");
   const minutes = String(date.getMinutes()).padStart(2, "0");
 
-  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} · ${hours}:${minutes}`;
+  return `${date.getDate()} ${MONTHS[date.getMonth()]} ${date.getFullYear()} · ${hours}:${minutes}`;
 }
 
 interface Props {
@@ -54,10 +54,10 @@ export default function AccountCard({
   onSignOut,
 }: Props) {
   const displayName = loading
-    ? "Loading account..."
-    : (account?.email ?? "Signed in user");
+    ? "Cargando cuenta..."
+    : (account?.email ?? "Sesión iniciada");
   const detail = account?.lastConnection
-    ? `Last connection ${formatLastConnection(account.lastConnection)}`
+    ? `Última conexión ${formatLastConnection(account.lastConnection)}`
     : "";
   const initial = (account?.email ?? "?").charAt(0).toUpperCase();
 
@@ -85,11 +85,11 @@ export default function AccountCard({
           className="w-full"
           onPress={onSignOut}
           disabled={loading || signingOut}
-          accessibilityLabel="Sign out"
+          accessibilityLabel="Cerrar sesión"
         >
           <Icon as={LogOut} size={16} className="text-destructive" />
           <Text className="text-destructive">
-            {signingOut ? "Signing out..." : "Sign out"}
+            {signingOut ? "Cerrando sesión..." : "Cerrar sesión"}
           </Text>
         </Button>
       </CardFooter>

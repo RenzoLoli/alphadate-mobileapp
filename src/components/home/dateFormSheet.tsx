@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, View } from "react-native";
 
 import * as Dialog from "@rn-primitives/dialog";
-import { X } from "lucide-react-native";
+import { TriangleAlert, X } from "lucide-react-native";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { AlphabetDate } from "@/lib/services/api/responses/alphabetDatesResponse";
 import { cn } from "@/lib/utils";
+
+import { SafeDialogContent } from "../shared/SafeDialogContent";
 
 export interface DateFormValues {
   title: string;
@@ -22,6 +25,20 @@ export interface DateFormValues {
 interface Props {
   /** The date being edited. `undefined` keeps the sheet closed. */
   date?: AlphabetDate;
+  /** The update request is in flight. */
+  saving?: boolean;
+  /** Server-side failure message shown inside the sheet. */
+  error?: string;
+  /** Dialog title. Defaults to "Edit date". */
+  heading?: string;
+  /** One-line explanation under the title. */
+  hint?: string;
+  /** Failure alert title shown above the fields. */
+  errorTitle?: string;
+  /** Submit button label while idle. */
+  saveLabel?: string;
+  /** Submit button label while `saving` is true. */
+  savingLabel?: string;
   onCancel: () => void;
   onSave: (values: DateFormValues) => void;
 }
@@ -38,13 +55,18 @@ function parseTags(tags: string): string[] {
     .filter((tag) => tag.length > 0);
 }
 
-/**
- * Bottom sheet for editing a date.
- *
- * Built on `@rn-primitives/dialog` so focus handling, dismissal and the
- * accessible title/description come from the primitive instead of a bare Modal.
- */
-export default function DateFormSheet({ date, onCancel, onSave }: Props) {
+export default function DateFormSheet({
+  date,
+  saving = false,
+  error,
+  heading = "Editar cita",
+  hint = "Actualiza esta entrada. Su letra sigue al título.",
+  errorTitle = "No pudimos guardar los cambios",
+  saveLabel = "Guardar cambios",
+  savingLabel = "Guardando...",
+  onCancel,
+  onSave,
+}: Props) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -62,18 +84,22 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
   function validate(): FormErrors {
     const nextErrors: FormErrors = {};
 
-    if (title.trim().length === 0) {
-      nextErrors.title = "Enter a title.";
+    if (title.trim().length < 3) {
+      nextErrors.title = "Usa al menos 3 caracteres.";
     }
 
-    if (description.trim().length === 0) {
-      nextErrors.description = "Enter a description.";
+    if (description.trim().length < 3) {
+      nextErrors.description = "Usa al menos 3 caracteres.";
     }
 
     return nextErrors;
   }
 
   function handleSave() {
+    if (saving) {
+      return;
+    }
+
     const nextErrors = validate();
 
     if (Object.keys(nextErrors).length > 0) {
@@ -88,8 +114,16 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
     });
   }
 
+  function handleCancel() {
+    if (saving) {
+      return;
+    }
+
+    onCancel();
+  }
+
   return (
-    <Dialog.Root open={open} onOpenChange={(next) => !next && onCancel()}>
+    <Dialog.Root open={open} onOpenChange={(next) => !next && handleCancel()}>
       <Dialog.Portal>
         <Dialog.Overlay className="absolute inset-0 bg-black/50" />
 
@@ -98,22 +132,23 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
           pointerEvents="box-none"
           className="absolute inset-0 justify-end"
         >
-          <Dialog.Content className="gap-5 rounded-t-3xl border-t border-border bg-card p-5 pb-8">
+          <SafeDialogContent className="gap-5 rounded-t-3xl border-t border-border bg-card p-5 pb-8">
             <View className="flex-row items-start justify-between gap-3">
               <View className="flex-1 gap-1">
                 <Dialog.Title className="text-xl font-semibold text-foreground">
-                  Edit date
+                  {heading}
                 </Dialog.Title>
                 <Dialog.Description className="text-sm text-muted-foreground">
-                  Update this entry. Its letter follows the title.
+                  {hint}
                 </Dialog.Description>
               </View>
 
               <Button
                 variant="ghost"
                 size="icon"
-                onPress={onCancel}
-                accessibilityLabel="Close"
+                onPress={handleCancel}
+                disabled={saving}
+                accessibilityLabel="Cerrar"
                 hitSlop={4}
                 className="-mr-2 -mt-2"
               >
@@ -121,9 +156,16 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
               </Button>
             </View>
 
+            {!!error && (
+              <Alert variant="destructive" icon={TriangleAlert}>
+                <AlertTitle>{errorTitle}</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <View className="gap-2">
               <Label nativeID="edit-date-title" htmlFor="edit-date-title">
-                Title
+                Título
               </Label>
               <Input
                 id="edit-date-title"
@@ -131,7 +173,8 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
                 value={title}
                 onChangeText={setTitle}
                 onBlur={() => setErrors(validate())}
-                placeholder="Dinner at sunset"
+                placeholder="Cenamos? Salimos? Noche de Pelis?"
+                editable={!saving}
                 aria-invalid={!!errors.title}
                 className={cn(errors.title && "border-destructive")}
               />
@@ -145,7 +188,7 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
                 nativeID="edit-date-description"
                 htmlFor="edit-date-description"
               >
-                Description
+                Descripción
               </Label>
               <Input
                 id="edit-date-description"
@@ -153,8 +196,9 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
                 value={description}
                 onChangeText={setDescription}
                 onBlur={() => setErrors(validate())}
-                placeholder="What is this date about?"
+                placeholder="¿De qué se trata esta cita?"
                 multiline
+                editable={!saving}
                 aria-invalid={!!errors.description}
                 className={cn(
                   "h-24 py-2",
@@ -170,40 +214,43 @@ export default function DateFormSheet({ date, onCancel, onSave }: Props) {
 
             <View className="gap-2">
               <Label nativeID="edit-date-tags" htmlFor="edit-date-tags">
-                Tags
+                Etiquetas
               </Label>
               <Input
                 id="edit-date-tags"
                 aria-labelledby="edit-date-tags"
                 value={tags}
                 onChangeText={setTags}
-                placeholder="friends, travel, ideas"
+                placeholder="amigos, viaje, ideas"
                 autoCapitalize="none"
                 autoCorrect={false}
+                editable={!saving}
               />
               <Text variant="muted" className="text-xs">
-                Separate tags with commas.
+                Separa las etiquetas con comas.
               </Text>
             </View>
-
-            <Text variant="muted" className="text-xs">
-              Editing is local for now: the server has no update endpoint yet.
-            </Text>
 
             <View className="flex-row gap-3">
               <Button
                 variant="outline"
                 size="lg"
                 className="flex-1"
-                onPress={onCancel}
+                onPress={handleCancel}
+                disabled={saving}
               >
-                <Text>Cancel</Text>
+                <Text>Cancelar</Text>
               </Button>
-              <Button size="lg" className="flex-1" onPress={handleSave}>
-                <Text>Save changes</Text>
+              <Button
+                size="lg"
+                className="flex-1"
+                onPress={handleSave}
+                disabled={saving}
+              >
+                <Text>{saving ? savingLabel : saveLabel}</Text>
               </Button>
             </View>
-          </Dialog.Content>
+          </SafeDialogContent>
         </KeyboardAvoidingView>
       </Dialog.Portal>
     </Dialog.Root>

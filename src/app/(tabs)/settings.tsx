@@ -59,7 +59,7 @@ export default function Settings() {
         console.log("loadAccount error:", loadError);
 
         if (active) {
-          setError("Could not load your account.");
+          setError("No pudimos cargar tu cuenta.");
         }
       } finally {
         if (active) {
@@ -83,7 +83,7 @@ export default function Settings() {
       await signOut();
     } catch (signOutError: any) {
       console.log("signOut error:", signOutError);
-      setError("Could not sign out. Please try again.");
+      setError("No pudimos cerrar la sesión. Inténtalo de nuevo.");
     } finally {
       setSigningOut(false);
     }
@@ -93,22 +93,24 @@ export default function Settings() {
     <ScreenLayout scroll>
       <View className="gap-6 pb-6">
         <View className="gap-1.5">
-          <Text variant="h3">Settings</Text>
-          <Text variant="muted">Manage your account and app preferences.</Text>
+          <Text variant="h3">Ajustes</Text>
+          {/* <Text variant="muted"> */}
+          {/*   Gestiona tu cuenta y las preferencias de la app. */}
+          {/* </Text> */}
         </View>
 
         {!!error && (
           <Alert variant="destructive" icon={TriangleAlert}>
             <View className="flex-row items-start justify-between gap-2">
               <View className="flex-1 gap-0.5">
-                <AlertTitle>Something went wrong</AlertTitle>
+                <AlertTitle>Algo salió mal</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </View>
               <Button
                 variant="ghost"
                 size="icon"
                 onPress={() => setError(undefined)}
-                accessibilityLabel="Dismiss"
+                accessibilityLabel="Cerrar"
                 className="-mr-2 -mt-1"
               >
                 <Icon as={X} className="text-muted-foreground" size={16} />
@@ -129,7 +131,7 @@ export default function Settings() {
             variant="muted"
             className="text-xs font-medium uppercase tracking-wider"
           >
-            Appearance
+            Apariencia
           </Text>
           <AppearanceCard />
         </View>
@@ -139,7 +141,7 @@ export default function Settings() {
             variant="muted"
             className="text-xs font-medium uppercase tracking-wider"
           >
-            About
+            Acerca de
           </Text>
           <AboutCard />
         </View>

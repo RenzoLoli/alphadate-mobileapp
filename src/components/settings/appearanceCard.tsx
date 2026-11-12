@@ -17,8 +17,8 @@ export default function AppearanceCard() {
     <Card className="gap-0 py-0">
       <SettingsRow
         icon={Moon}
-        title="Dark mode"
-        description="Use a darker theme across the app"
+        title="Modo oscuro"
+        description="Usa un tema más oscuro en toda la app"
       >
         <Switch
           value={isDark}
@@ -28,7 +28,7 @@ export default function AppearanceCard() {
             true: theme.colors.primary,
           }}
           ios_backgroundColor={theme.colors.border}
-          accessibilityLabel="Dark mode"
+          accessibilityLabel="Modo oscuro"
         />
       </SettingsRow>
     </Card>

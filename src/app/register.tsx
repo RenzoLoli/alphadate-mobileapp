@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/useAuth";
+import { saveLastEmail } from "@/lib/services/storage/lastEmailStorage";
 import { cn } from "@/lib/utils";
 
 export type AuthFormErrors = {
@@ -39,13 +40,13 @@ export default function Register() {
     const nextErrors: AuthFormErrors = {};
 
     if (email.trim().length === 0) {
-      nextErrors.email = "Enter your email.";
+      nextErrors.email = "Ingresa tu email.";
     } else if (!EMAIL_REGEX.test(email.trim())) {
-      nextErrors.email = "Enter a valid email address.";
+      nextErrors.email = "Ingresa un email válido.";
     }
 
     if (password.length === 0) {
-      nextErrors.password = "Enter a password.";
+      nextErrors.password = "Ingresa una contraseña.";
     } else if (password.length < MIN_PASSWORD_LENGTH) {
       nextErrors.password = `The password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
     }
@@ -66,6 +67,8 @@ export default function Register() {
       }
 
       await signUp(email.trim(), password);
+      // Prefill the login form with the address that was just registered.
+      await saveLastEmail(email.trim());
       console.log("register successful");
       router.replace({ pathname: "/login", params: { registered: "1" } });
     } catch (error: any) {
@@ -81,7 +84,7 @@ export default function Register() {
       if (!ignoreErrors.includes(error.name)) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: "Something went wrong" });
+        setErrors({ form: "Algo salió mal" });
       }
     } finally {
       setIsSubmitting(false);
@@ -103,11 +106,11 @@ export default function Register() {
             <View className="flex-row items-center justify-between gap-3">
               <View className="min-w-0 flex-1 gap-1.5">
                 <Text variant="h3" numberOfLines={1} ellipsizeMode="middle">
-                  Create your account
+                  Crea tu cuenta
                 </Text>
-                <Text variant="muted" numberOfLines={2} ellipsizeMode="tail">
-                  Register your email and password to get started.
-                </Text>
+                {/* <Text variant="muted" numberOfLines={2} ellipsizeMode="tail"> */}
+                {/*   Registra tu email y contraseña para empezar. */}
+                {/* </Text> */}
               </View>
 
               <ThemeToggle />
@@ -115,7 +118,7 @@ export default function Register() {
 
             {!!errors.form && (
               <Alert variant="destructive" icon={TriangleAlert}>
-                <AlertTitle>We couldn&apos;t create your account</AlertTitle>
+                <AlertTitle>No pudimos crear tu cuenta</AlertTitle>
                 <AlertDescription>{errors.form}</AlertDescription>
               </Alert>
             )}
@@ -131,7 +134,7 @@ export default function Register() {
                   value={email}
                   onChangeText={setEmail}
                   onBlur={() => setErrors(validate())}
-                  placeholder="you@example.com"
+                  placeholder="tu@ejemplo.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -150,7 +153,7 @@ export default function Register() {
 
               <View className="gap-2">
                 <Label nativeID="register-password" htmlFor="register-password">
-                  Password
+                  Contraseña
                 </Label>
                 <View className="relative justify-center">
                   <Input
@@ -175,7 +178,7 @@ export default function Register() {
                     size="icon"
                     onPress={() => setShowPassword((value) => !value)}
                     accessibilityLabel={
-                      showPassword ? "Hide password" : "Show password"
+                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                     }
                     className="absolute right-1"
                   >
@@ -200,21 +203,19 @@ export default function Register() {
               onPress={handleSubmit}
               disabled={isSubmitting}
             >
-              <Text>
-                {isSubmitting ? "Creating account..." : "Create account"}
-              </Text>
+              <Text>{isSubmitting ? "Creando cuenta..." : "Crear cuenta"}</Text>
             </Button>
 
             <View className="flex-row items-center justify-center gap-1">
               <Text variant="muted" className="text-sm">
-                Already have an account?
+                ¿Ya tienes una cuenta?
               </Text>
               <Button
                 variant="link"
                 size="sm"
                 onPress={() => router.push("/login")}
               >
-                <Text>Sign in</Text>
+                <Text>Iniciar sesión</Text>
               </Button>
             </View>
           </View>

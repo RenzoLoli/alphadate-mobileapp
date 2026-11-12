@@ -1,7 +1,7 @@
 import { Pressable, View } from "react-native";
 
 import * as Dialog from "@rn-primitives/dialog";
-import { Pencil, Trash2 } from "lucide-react-native";
+import { Check, Pencil, RotateCcw, Trash2 } from "lucide-react-native";
 
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
@@ -14,6 +14,8 @@ interface Props {
   onClose: () => void;
   onEdit: (date: AlphabetDate) => void;
   onDelete: (date: AlphabetDate) => void;
+  /** Finishes a PUBLISHED date, or reopens a DONE one. */
+  onToggleStatus: (date: AlphabetDate) => void;
 }
 
 /**
@@ -27,7 +29,10 @@ export default function DateActionsDialog({
   onClose,
   onEdit,
   onDelete,
+  onToggleStatus,
 }: Props) {
+  const done = date ? date.status === "DONE" : false;
+
   return (
     <Dialog.Root open={!!date} onOpenChange={(next) => !next && onClose()}>
       <Dialog.Portal>
@@ -37,10 +42,10 @@ export default function DateActionsDialog({
           <Dialog.Content className="w-full gap-4 rounded-2xl border border-border bg-card p-5">
             <View className="gap-1">
               <Dialog.Title className="text-lg font-semibold text-foreground">
-                {date?.title ?? "Date"}
+                {date?.title ?? "Cita"}
               </Dialog.Title>
               <Dialog.Description className="text-sm text-muted-foreground">
-                Choose an action.
+                Elige una acción.
               </Dialog.Description>
             </View>
 
@@ -48,28 +53,50 @@ export default function DateActionsDialog({
               <Pressable
                 onPress={() => date && onEdit(date)}
                 accessibilityRole="button"
-                accessibilityLabel={date ? `Edit ${date.title}` : "Edit date"}
+                accessibilityLabel={
+                  date ? `Editar ${date.title}` : "Editar cita"
+                }
                 className="h-12 flex-row items-center gap-3 rounded-lg px-3 active:bg-accent"
               >
                 <Icon as={Pencil} size={18} className="text-foreground" />
-                <Text className="text-base">Edit</Text>
+                <Text className="text-base">Editar</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => date && onToggleStatus(date)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  done
+                    ? `Reabrir ${date?.title ?? "cita"}`
+                    : `Finalizar ${date?.title ?? "cita"}`
+                }
+                className="h-12 flex-row items-center gap-3 rounded-lg px-3 active:bg-accent"
+              >
+                <Icon
+                  as={done ? RotateCcw : Check}
+                  size={18}
+                  className="text-foreground"
+                />
+                <Text className="text-base">
+                  {done ? "Reabrir cita" : "Marcar como finalizada"}
+                </Text>
               </Pressable>
 
               <Pressable
                 onPress={() => date && onDelete(date)}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  date ? `Delete ${date.title}` : "Delete date"
+                  date ? `Eliminar ${date.title}` : "Eliminar cita"
                 }
                 className="h-12 flex-row items-center gap-3 rounded-lg px-3 active:bg-accent"
               >
                 <Icon as={Trash2} size={18} className="text-foreground" />
-                <Text className="text-base">Delete</Text>
+                <Text className="text-base">Eliminar</Text>
               </Pressable>
             </View>
 
             <Button variant="outline" size="lg" onPress={onClose}>
-              <Text>Cancel</Text>
+              <Text>Cancelar</Text>
             </Button>
           </Dialog.Content>
         </View>

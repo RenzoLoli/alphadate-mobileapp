@@ -14,6 +14,7 @@ import DateCard from "@/components/home/dateCard";
 import LetterRail from "@/components/home/letterRail";
 import { Text } from "@/components/ui/text";
 import { AlphabetDate } from "@/lib/services/api/responses/alphabetDatesResponse";
+import { isDateDone } from "@/lib/utils/dates";
 import { LETTERS, Letter } from "@/lib/utils/letters";
 
 interface Props {
@@ -23,6 +24,7 @@ interface Props {
   onDelete: (date: AlphabetDate) => void;
   onEdit: (date: AlphabetDate) => void;
   onShowActions: (date: AlphabetDate) => void;
+  onToggleStatus: (date: AlphabetDate) => void;
 }
 
 export default function AlphabetLayout({
@@ -32,17 +34,24 @@ export default function AlphabetLayout({
   onDelete,
   onEdit,
   onShowActions,
+  onToggleStatus,
 }: Props) {
   const scrollRef = useRef<ScrollView>(null);
   const sectionOffsets = useRef<Partial<Record<Letter, number>>>({});
   const openRowRef = useRef<SwipeableMethods | null>(null);
   const [activeLetter, setActiveLetter] = useState<Letter | undefined>();
+  // A tap on the rail wins until the user drags again: the tap already says
+  // which group they want to read, even when the scroll cannot reach it.
+  const pressedLetter = useRef<Letter | null>(null);
 
   const sections = useMemo(
     () =>
       LETTERS.map((letter) => ({
         letter,
-        dates: dates.filter((date) => date.letter === letter),
+        // Finished dates lead their letter group; the rest keep their order.
+        dates: dates
+          .filter((date) => date.letter === letter)
+          .sort((a, b) => Number(isDateDone(b)) - Number(isDateDone(a))),
       })).filter((section) => section.dates.length > 0),
     [dates]
   );
@@ -70,6 +79,10 @@ export default function AlphabetLayout({
     const offset = sectionOffsets.current[letter];
 
     if (offset !== undefined) {
+      // Highlight on tap instead of waiting for the scroll to report itself.
+      pressedLetter.current = letter;
+      setActiveLetter(letter);
+
       scrollRef.current?.scrollTo({
         y: Math.max(offset - 8, 0),
         animated: true,
@@ -77,8 +90,25 @@ export default function AlphabetLayout({
     }
   }
 
+  function handleScrollBeginDrag() {
+    pressedLetter.current = null;
+  }
+
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    const offsetY = event.nativeEvent.contentOffset.y;
+    if (pressedLetter.current !== null) {
+      return;
+    }
+
+    const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    const offsetY = contentOffset.y;
+    const maxOffsetY = Math.max(
+      contentSize.height - layoutMeasurement.height,
+      0
+    );
+    // The last groups never reach the top of the viewport, so the
+    // `offset <= offsetY + 100` test below can never match for them. Hitting
+    // the bottom means the last group is the one being read.
+    const atBottom = maxOffsetY > 0 && offsetY >= maxOffsetY - 2;
     let nextActive: Letter | undefined;
 
     for (const section of sections) {
@@ -87,6 +117,10 @@ export default function AlphabetLayout({
       if (offset !== undefined && offset <= offsetY + 100) {
         nextActive = section.letter;
       }
+    }
+
+    if (atBottom) {
+      nextActive = sections[sections.length - 1]?.letter ?? nextActive;
     }
 
     if (nextActive !== activeLetter) {
@@ -114,6 +148,7 @@ export default function AlphabetLayout({
         className="flex-1"
         scrollEventThrottle={16}
         onScroll={handleScroll}
+        onScrollBeginDrag={handleScrollBeginDrag}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -134,7 +169,7 @@ export default function AlphabetLayout({
                 <View className="rounded-full bg-muted px-2 py-0.5">
                   <Text className="text-xs font-medium text-muted-foreground">
                     {letterDates.length}{" "}
-                    {letterDates.length === 1 ? "date" : "dates"}
+                    {letterDates.length === 1 ? "cita" : "citas"}
                   </Text>
                 </View>
                 <View className="h-px flex-1 bg-border" />
@@ -148,6 +183,7 @@ export default function AlphabetLayout({
                   onDelete={onDelete}
                   onEdit={onEdit}
                   onShowActions={onShowActions}
+                  onToggleStatus={onToggleStatus}
                   onRowOpen={handleRowOpen}
                 />
               ))}

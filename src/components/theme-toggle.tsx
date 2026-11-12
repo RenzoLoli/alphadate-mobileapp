@@ -13,7 +13,7 @@ export default function ThemeToggle() {
     <Pressable
       onPress={toggleTheme}
       accessibilityLabel={
-        isDark ? "Switch to light mode" : "Switch to dark mode"
+        isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
       }
       className="mr-1.5 transition-transform"
     >

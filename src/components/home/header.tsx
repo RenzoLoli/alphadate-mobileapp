@@ -12,11 +12,11 @@ interface HomeHeaderProps {
 }
 
 const messages = [
-  "What a beautiful day for a date!",
-  "Interesting...",
-  "Yeah... you want it!",
-  "Why not?",
-  "Welcome to Alphadate!",
+  "¡Qué lindo día para una cita!",
+  "Interesante...",
+  "Sí... sabes que quieres.",
+  "¿Por qué no?",
+  "¡Bienvenido a Alphadate!",
 ];
 
 export default function HomeHeader({ onPressPlus }: HomeHeaderProps) {

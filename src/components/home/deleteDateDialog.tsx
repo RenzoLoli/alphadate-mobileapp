@@ -8,6 +8,8 @@ import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { AlphabetDate } from "@/lib/services/api/responses/alphabetDatesResponse";
 
+import { SafeDialogContent } from "../shared/SafeDialogContent";
+
 interface Props {
   date?: AlphabetDate;
   loading?: boolean;
@@ -38,21 +40,20 @@ export default function DeleteDateDialog({
         <AlertDialog.Overlay className="absolute inset-0 bg-black/50" />
 
         <View className="absolute inset-0 items-center justify-center px-6">
-          <AlertDialog.Content className="w-full gap-5 rounded-2xl border border-border bg-card p-6">
+          <SafeDialogContent className="w-full gap-5 rounded-2xl border border-border bg-card p-6">
             <View className="h-12 w-12 items-center justify-center rounded-full bg-secondary">
               <Icon as={Trash2} size={22} className="text-foreground" />
             </View>
 
             <View className="gap-1.5">
               <AlertDialog.Title className="text-xl font-semibold text-foreground">
-                Delete this date?
+                ¿Eliminar esta cita?
               </AlertDialog.Title>
               <Text className="text-sm font-medium text-foreground">
                 {date?.title}
               </Text>
               <AlertDialog.Description className="text-sm text-muted-foreground">
-                It will be removed from your alphabet. This can&apos;t be
-                undone.
+                Se quitará de alphadate. Esto no se puede deshacer.
               </AlertDialog.Description>
             </View>
 
@@ -64,7 +65,7 @@ export default function DeleteDateDialog({
                 onPress={onCancel}
                 disabled={loading}
               >
-                <Text>Cancel</Text>
+                <Text>Cancelar</Text>
               </Button>
               <Button
                 size="lg"
@@ -72,10 +73,10 @@ export default function DeleteDateDialog({
                 onPress={onConfirm}
                 disabled={loading}
               >
-                <Text>{loading ? "Deleting..." : "Delete"}</Text>
+                <Text>{loading ? "Eliminando..." : "Eliminar"}</Text>
               </Button>
             </View>
-          </AlertDialog.Content>
+          </SafeDialogContent>
         </View>
       </AlertDialog.Portal>
     </AlertDialog.Root>

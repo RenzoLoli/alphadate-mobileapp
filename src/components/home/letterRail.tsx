@@ -47,8 +47,8 @@ export default function LetterRail({
             onPress={() => onLetterPress(letter)}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
-            accessibilityLabel={`Letter ${letter.toUpperCase()}, ${count} ${
-              count === 1 ? "date" : "dates"
+            accessibilityLabel={`Letra ${letter.toUpperCase()}, ${count} ${
+              count === 1 ? "cita" : "citas"
             }`}
             className={cn(
               "h-12 min-w-12 flex-col items-center justify-center rounded-lg border",

@@ -24,6 +24,7 @@ interface Props {
   onDelete: (date: AlphabetDate) => void;
   onEdit: (date: AlphabetDate) => void;
   onShowActions: (date: AlphabetDate) => void;
+  onToggleStatus: (date: AlphabetDate) => void;
   onRowOpen: (methods: SwipeableMethods) => void;
 }
 
@@ -34,6 +35,7 @@ export default function AccordionLayout({
   onDelete,
   onEdit,
   onShowActions,
+  onToggleStatus,
   onRowOpen,
 }: Props) {
   const [touched, setTouched] = useState(false);
@@ -88,7 +90,7 @@ export default function AccordionLayout({
                   <View className="rounded-full bg-muted px-2 py-0.5">
                     <Text className="text-xs font-medium text-muted-foreground">
                       {letterDates.length}{" "}
-                      {letterDates.length === 1 ? "date" : "dates"}
+                      {letterDates.length === 1 ? "cita" : "citas"}
                     </Text>
                   </View>
                 </View>
@@ -103,6 +105,7 @@ export default function AccordionLayout({
                     onDelete={onDelete}
                     onEdit={onEdit}
                     onShowActions={onShowActions}
+                    onToggleStatus={onToggleStatus}
                     onRowOpen={onRowOpen}
                   />
                 ))}
@@ -115,7 +118,7 @@ export default function AccordionLayout({
               <AccordionTrigger>
                 <View className="flex-row items-center gap-2">
                   <Text variant="muted" className="text-sm font-medium">
-                    Letters without dates
+                    Letras sin citas
                   </Text>
                   <View className="rounded-full border border-border px-2 py-0.5">
                     <Text className="text-xs font-medium text-muted-foreground">
@@ -145,7 +148,7 @@ export default function AccordionLayout({
 
         {filledGroups.length === 0 && (
           <View className="items-center gap-2 rounded-lg border border-dashed border-border py-8">
-            <Text variant="muted">No dates in your alphabet yet.</Text>
+            <Text variant="muted">Todavía no hay citas en tu Alphadate.</Text>
           </View>
         )}
       </View>

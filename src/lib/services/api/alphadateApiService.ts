@@ -1,9 +1,13 @@
 import { fetchAuthSession } from "aws-amplify/auth";
 import { create } from "axios";
 
+import { normalizeDateStatus } from "@/lib/utils/dates";
 import { deriveLetter, normalizeLetter } from "@/lib/utils/letters";
 
-import { AlphabetDatesResponse } from "./responses/alphabetDatesResponse";
+import {
+  type AlphabetDateStatusCommand,
+  AlphabetDatesResponse,
+} from "./responses/alphabetDatesResponse";
 import { BaseResponse } from "./responses/base";
 
 const apiClient = create({
@@ -62,7 +66,7 @@ export class AlphadateService {
         };
       }
 
-      const nError = new Error("Something went wrong");
+      const nError = new Error("Algo salió mal");
       Object.assign(nError, {
         status: response.status,
       });
@@ -72,7 +76,59 @@ export class AlphadateService {
       console.log("STATUS: ", error.status);
       console.log("ERROR: ", error);
       return {
-        message: error.message || "Something went wrong",
+        message:
+          error?.response?.data?.message ?? error.message ?? "Algo salió mal",
+        ok: false,
+      };
+    }
+  }
+
+  async updateAlphabetDate({
+    dateId,
+    title,
+    description,
+    tags,
+    status,
+  }: {
+    dateId: string;
+    title: string;
+    description: string;
+    tags: string[];
+    /** `finish` moves PUBLISHED -> DONE; `refresh` moves DONE -> PUBLISHED. */
+    status?: AlphabetDateStatusCommand;
+  }): Promise<BaseResponse> {
+    console.log("#####################################");
+    try {
+      console.log("REQUEST 'updateAlphabetDate'");
+      const response = await apiClient.put(`/alphabets/dates/${dateId}`, {
+        title,
+        description,
+        tags,
+        ...(status ? { status } : {}),
+      });
+
+      console.log("STATUS: ", response.status);
+      if (response.status === 200) {
+        const data = response.data;
+
+        return {
+          message: data?.message || "Cita actualizada",
+          ok: true,
+        };
+      }
+
+      const nError = new Error("Algo salió mal");
+      Object.assign(nError, {
+        status: response.status,
+      });
+
+      throw nError;
+    } catch (error: any) {
+      console.log("STATUS: ", error.status);
+      console.log("ERROR: ", error);
+      return {
+        message:
+          error?.response?.data?.message ?? error.message ?? "Algo salió mal",
         ok: false,
       };
     }
@@ -88,12 +144,12 @@ export class AlphadateService {
       if (response.status === 200 || response.status === 204) {
         console.log("DATE Deleted");
         return {
-          message: response.data?.message || "Date deleted",
+          message: response.data?.message || "Cita eliminada",
           ok: true,
         };
       }
 
-      const nError = new Error("Something went wrong");
+      const nError = new Error("Algo salió mal");
       Object.assign(nError, {
         status: response.status,
       });
@@ -103,17 +159,17 @@ export class AlphadateService {
       console.log("STATUS: ", error.status);
       console.log("ERROR: ", error);
       return {
-        message: error.message || "Something went wrong",
+        message: error.message || "Algo salió mal",
         ok: false,
       };
     }
   }
 
-  async getAlphabetDates(): Promise<AlphabetDatesResponse> {
+  async getAlphabetRecommendations(): Promise<AlphabetDatesResponse> {
     console.log("#####################################");
     try {
-      console.log("REQUEST 'getAlphabetDates'");
-      const response = await apiClient.get(`/alphabets`);
+      console.log("REQUEST 'getAlphabetRecommendations'");
+      const response = await apiClient.get(`/alphabets/recommendations`);
 
       console.log("STATUS: ", response.status);
       if (response.status === 200) {
@@ -129,11 +185,12 @@ export class AlphadateService {
             letter:
               normalizeLetter(date.letter) ??
               deriveLetter(`${date.title ?? ""} ${date.description ?? ""}`),
+            status: normalizeDateStatus(date.status),
           })),
         };
       }
 
-      const nError = new Error("Something went wrong");
+      const nError = new Error("Algo salió mal");
       Object.assign(nError, {
         status: response.status,
       });
@@ -143,7 +200,50 @@ export class AlphadateService {
       console.log("STATUS: ", error.status);
       console.log("ERROR: ", error);
       return {
-        message: error.message || "Something went wrong",
+        message: error.message || "Algo salió mal",
+        ok: false,
+        length: 0,
+        dates: [],
+      };
+    }
+  }
+
+  async getAlphabetDates(): Promise<AlphabetDatesResponse> {
+    console.log("#####################################");
+    try {
+      console.log("REQUEST 'getAlphabetDates'");
+      const response = await apiClient.get(`/alphabets/dates`);
+
+      console.log("STATUS: ", response.status);
+      if (response.status === 200) {
+        const data = response.data;
+
+        console.log("DATA Received");
+        return {
+          message: data.message,
+          ok: true,
+          length: data.dates?.length ?? 0,
+          dates: (data.dates ?? []).map((date: any) => ({
+            ...date,
+            letter:
+              normalizeLetter(date.letter) ??
+              deriveLetter(`${date.title ?? ""} ${date.description ?? ""}`),
+            status: normalizeDateStatus(date.status),
+          })),
+        };
+      }
+
+      const nError = new Error("Algo salió mal");
+      Object.assign(nError, {
+        status: response.status,
+      });
+
+      throw nError;
+    } catch (error: any) {
+      console.log("STATUS: ", error.status);
+      console.log("ERROR: ", error);
+      return {
+        message: error.message || "Algo salió mal",
         ok: false,
         length: 0,
         dates: [],

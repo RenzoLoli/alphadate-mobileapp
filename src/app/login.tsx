@@ -1,6 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  View,
+} from "react-native";
 
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -20,6 +26,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  clearLastEmail,
+  getLastEmail,
+  saveLastEmail,
+} from "@/lib/services/storage/lastEmailStorage";
 import { cn } from "@/lib/utils";
 
 export type AuthFormErrors = {
@@ -38,10 +49,39 @@ export default function Login() {
   const { signIn } = useAuth();
 
   const [email, setEmail] = useState("");
+  const [rememberedEmail, setRememberedEmail] = useState<string | undefined>();
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<AuthFormErrors>({});
+
+  // Prefill the last email used on this device. Passwords and sessions are
+  // never stored; this only saves retyping the address after a sign-out.
+  useEffect(() => {
+    let active = true;
+
+    getLastEmail().then((stored) => {
+      if (!active || !stored) {
+        return;
+      }
+
+      setRememberedEmail(stored);
+      setEmail((current) => (current.length > 0 ? current : stored));
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const showRememberedEmail =
+    rememberedEmail !== undefined && email === rememberedEmail;
+
+  async function forgetRememberedEmail() {
+    setEmail("");
+    setRememberedEmail(undefined);
+    await clearLastEmail();
+  }
 
   function dismissRegisteredAlert() {
     router.setParams({ registered: undefined });
@@ -51,13 +91,13 @@ export default function Login() {
     const nextErrors: AuthFormErrors = {};
 
     if (email.trim().length === 0) {
-      nextErrors.email = "Enter your email.";
+      nextErrors.email = "Ingresa tu email.";
     } else if (!EMAIL_REGEX.test(email.trim())) {
-      nextErrors.email = "Enter a valid email address.";
+      nextErrors.email = "Ingresa un email válido.";
     }
 
     if (password.length === 0) {
-      nextErrors.password = "Enter your password.";
+      nextErrors.password = "Ingresa tu contraseña.";
     }
 
     return nextErrors;
@@ -76,6 +116,7 @@ export default function Login() {
       }
 
       await signIn(email.trim(), password);
+      await saveLastEmail(email.trim());
       console.log("login successful");
       router.push("/");
     } catch (error: any) {
@@ -88,7 +129,7 @@ export default function Login() {
       if (!ignoreErrors.includes(error.name)) {
         setErrors({ form: error.message });
       } else {
-        setErrors({ form: "Something went wrong" });
+        setErrors({ form: "Algo salió mal" });
       }
     } finally {
       setIsSubmitting(false);
@@ -110,11 +151,11 @@ export default function Login() {
             <View className="flex-row items-center justify-between gap-3">
               <View className="min-w-0 flex-1 gap-1.5">
                 <Text variant="h3" numberOfLines={1} ellipsizeMode="middle">
-                  Sign in
+                  Iniciar sesión
                 </Text>
-                <Text variant="muted" numberOfLines={2} ellipsizeMode="tail">
-                  Enter your email and password to continue.
-                </Text>
+                {/* <Text variant="muted" numberOfLines={2} ellipsizeMode="tail"> */}
+                {/*   Ingresa tu email y contraseña para continuar. */}
+                {/* </Text> */}
               </View>
 
               <ThemeToggle />
@@ -124,17 +165,16 @@ export default function Login() {
               <Alert icon={CircleCheck} iconClassName="text-primary">
                 <View className="flex-row items-start justify-between gap-2">
                   <View className="flex-1 gap-0.5">
-                    <AlertTitle>Account created</AlertTitle>
+                    <AlertTitle>Cuenta creada</AlertTitle>
                     <AlertDescription>
-                      Your account was created successfully. You can sign in
-                      now.
+                      Tu cuenta se creó correctamente. Ya puedes iniciar sesión.
                     </AlertDescription>
                   </View>
                   <Button
                     variant="ghost"
                     size="icon"
                     onPress={dismissRegisteredAlert}
-                    accessibilityLabel="Dismiss"
+                    accessibilityLabel="Cerrar"
                     className="-mr-2 -mt-1"
                   >
                     <Icon as={X} className="text-muted-foreground" size={16} />
@@ -145,23 +185,37 @@ export default function Login() {
 
             {!!errors.form && (
               <Alert variant="destructive" icon={TriangleAlert}>
-                <AlertTitle>We couldn&apos;t sign you in</AlertTitle>
+                <AlertTitle>No pudimos iniciar tu sesión</AlertTitle>
                 <AlertDescription>{errors.form}</AlertDescription>
               </Alert>
             )}
 
             <View className="gap-5">
               <View className="gap-2">
-                <Label nativeID="login-email" htmlFor="login-email">
-                  Email
-                </Label>
+                <View className="flex-row items-center justify-between gap-3">
+                  <Label nativeID="login-email" htmlFor="login-email">
+                    Email
+                  </Label>
+                  {showRememberedEmail && (
+                    <Pressable
+                      onPress={forgetRememberedEmail}
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel="Borrar el email guardado"
+                    >
+                      <Text className="text-xs font-medium text-muted-foreground">
+                        No Eres tu?
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
                 <Input
                   id="login-email"
                   aria-labelledby="login-email"
                   value={email}
                   onChangeText={setEmail}
                   onBlur={() => setErrors(validate())}
-                  placeholder="you@example.com"
+                  placeholder="tu@ejemplo.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -180,7 +234,7 @@ export default function Login() {
 
               <View className="gap-2">
                 <Label nativeID="login-password" htmlFor="login-password">
-                  Password
+                  Contraseña
                 </Label>
                 <View className="relative justify-center">
                   <Input
@@ -205,7 +259,7 @@ export default function Login() {
                     size="icon"
                     onPress={() => setShowPassword((value) => !value)}
                     accessibilityLabel={
-                      showPassword ? "Hide password" : "Show password"
+                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                     }
                     className="absolute right-1"
                   >
@@ -230,19 +284,19 @@ export default function Login() {
               onPress={handleSubmit}
               disabled={isSubmitting}
             >
-              <Text>{isSubmitting ? "Signing in..." : "Sign in"}</Text>
+              <Text>{isSubmitting ? "Ingresando..." : "Iniciar sesión"}</Text>
             </Button>
 
             <View className="flex-row items-center justify-center gap-1">
               <Text variant="muted" className="text-sm">
-                Don&apos;t have an account?
+                ¿Aun no tienes una cuenta?
               </Text>
               <Button
                 variant="link"
                 size="sm"
                 onPress={() => router.push("/register")}
               >
-                <Text>Sign up</Text>
+                <Text>Registrarse</Text>
               </Button>
             </View>
           </View>

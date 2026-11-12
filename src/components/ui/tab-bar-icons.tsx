@@ -55,6 +55,37 @@ function SettingsIcon({ parts }: TabIconProps) {
   );
 }
 
+function DatesIcon({ parts }: TabIconProps) {
+  return (
+    <View className="relative h-6 w-6">
+      {/* Calendar body. */}
+      <View
+        className={`absolute left-[3px] top-[6px] h-[15px] w-[18px] rounded-[3px] border-[1.8px] ${parts.stroke}`}
+      />
+
+      {/* Binder rings poking above the body. */}
+      <View
+        className={`absolute left-[7px] top-[3.5px] h-[5px] w-[1.8px] rounded-full ${parts.fill}`}
+      />
+      <View
+        className={`absolute left-[15px] top-[3.5px] h-[5px] w-[1.8px] rounded-full ${parts.fill}`}
+      />
+
+      {/* A heart in the day area: two lobes plus a rotated square for the tip. */}
+      <View
+        className={`absolute left-[8px] top-[11.5px] h-[4px] w-[4px] rounded-full ${parts.fill}`}
+      />
+      <View
+        className={`absolute left-[12px] top-[11.5px] h-[4px] w-[4px] rounded-full ${parts.fill}`}
+      />
+      <View
+        className={`absolute left-[10.3px] top-[13.7px] h-[3.4px] w-[3.4px] ${parts.fill}`}
+        style={{ transform: [{ rotate: "45deg" }] }}
+      />
+    </View>
+  );
+}
+
 function DotIcon({ parts }: TabIconProps) {
   return (
     <View className="relative flex h-6 w-6 items-center justify-center">
@@ -65,4 +96,4 @@ function DotIcon({ parts }: TabIconProps) {
 
 export type TabIcon = (props: TabIconProps) => React.ReactNode;
 
-export { DotIcon, HomeIcon, SettingsIcon };
+export { DatesIcon, DotIcon, HomeIcon, SettingsIcon };

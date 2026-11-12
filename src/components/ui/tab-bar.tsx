@@ -12,10 +12,17 @@ import Animated, {
 
 import { cn } from "@/lib/utils";
 
-import { DotIcon, HomeIcon, SettingsIcon, type TabIcon } from "./tab-bar-icons";
+import {
+  DatesIcon,
+  DotIcon,
+  HomeIcon,
+  SettingsIcon,
+  type TabIcon,
+} from "./tab-bar-icons";
 
 const DEFAULT_ICONS: Record<string, TabIcon> = {
   home: HomeIcon,
+  dates: DatesIcon,
   settings: SettingsIcon,
 };
 
@@ -139,13 +146,10 @@ function TabBar({
   return (
     <View
       className={cn(
-        "flex-row items-center justify-around gap-2 border-t border-border bg-background px-2 pt-2",
+        "my-3 flex-row items-center justify-around gap-2 border-t border-border bg-background px-2 pt-3",
         barClassName
       )}
-      // The previous implementation hardcoded `pb-6`, which ignores devices with
-      // a gesture bar or three-button navigation. The navigator hands us the
-      // real inset; keep a floor so the bar never collapses.
-      style={{ paddingBottom: Math.max(insets.bottom, 8) }}
+      style={{ paddingBottom: insets.bottom }}
     >
       {routes.map((route) => {
         const isFocused = state.index === state.routes.indexOf(route);

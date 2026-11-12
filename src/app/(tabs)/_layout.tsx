@@ -11,15 +11,15 @@ export default function RootLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: "Home",
+          title: "Inicio",
           href: "/home",
         }}
       />
-      <Tabs.Screen name="dates" options={{ title: "Dates", href: "/dates" }} />
+      <Tabs.Screen name="dates" options={{ title: "Citas", href: "/dates" }} />
       <Tabs.Screen
         name="settings"
         options={{
-          title: "Settings",
+          title: "Ajustes",
           href: "/settings",
         }}
       />

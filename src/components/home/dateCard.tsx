@@ -2,7 +2,8 @@ import { memo, useRef } from "react";
 
 import { Pressable, View } from "react-native";
 
-import { type LucideIcon, Pencil, Trash2 } from "lucide-react-native";
+import { Check, type LucideIcon, Pencil, Trash2 } from "lucide-react-native";
+import { BaseButton } from "react-native-gesture-handler";
 import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
@@ -18,7 +19,10 @@ import Animated, {
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
-import { AlphabetDate } from "@/lib/services/api/responses/alphabetDatesResponse";
+import {
+  AlphabetDate,
+  DATE_STATUS,
+} from "@/lib/services/api/responses/alphabetDatesResponse";
 import { cn } from "@/lib/utils";
 
 /** Width of a revealed action. Wide enough for an icon plus its label. */
@@ -31,6 +35,8 @@ interface Props {
   onEdit: (date: AlphabetDate) => void;
   /** Long-press and screen-reader entry point, so swipe is never the only way. */
   onShowActions: (date: AlphabetDate) => void;
+  /** Finishes a PUBLISHED date, or reopens a DONE one. */
+  onToggleStatus: (date: AlphabetDate) => void;
   /** Lets the list close the previously opened row. */
   onRowOpen: (methods: SwipeableMethods) => void;
 }
@@ -71,33 +77,39 @@ function SwipeAction({
   const solid = emphasis === "solid";
 
   return (
-    <Pressable
+    <BaseButton
       onPress={onPress}
+      style={{ width: ACTION_WIDTH }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      style={{ width: ACTION_WIDTH }}
-      className={cn(
-        "items-center justify-center gap-1.5",
-        solid ? "bg-foreground" : "bg-secondary",
-        side === "left" ? "rounded-l-xl" : "rounded-r-xl"
-      )}
+      borderless
+      rippleColor="transparent"
     >
-      <Animated.View style={iconStyle}>
-        <Icon
-          as={icon}
-          size={18}
-          className={solid ? "text-background" : "text-foreground"}
-        />
-      </Animated.View>
-      <Text
+      <View
+        style={{ width: ACTION_WIDTH }}
         className={cn(
-          "text-xs font-medium",
-          solid ? "text-background" : "text-foreground"
+          "flex-1 items-center justify-center gap-1.5",
+          solid ? "bg-foreground" : "bg-secondary",
+          side === "left" ? "rounded-l-xl" : "rounded-r-xl"
         )}
       >
-        {label}
-      </Text>
-    </Pressable>
+        <Animated.View style={iconStyle}>
+          <Icon
+            as={icon}
+            size={18}
+            className={solid ? "text-background" : "text-foreground"}
+          />
+        </Animated.View>
+        <Text
+          className={cn(
+            "text-xs font-medium",
+            solid ? "text-background" : "text-foreground"
+          )}
+        >
+          {label}
+        </Text>
+      </View>
+    </BaseButton>
   );
 }
 
@@ -107,9 +119,11 @@ export default memo(function DateCard({
   onDelete,
   onEdit,
   onShowActions,
+  onToggleStatus,
   onRowOpen,
 }: Props) {
   const swipeableRef = useRef<SwipeableMethods | null>(null);
+  const done = date.status === DATE_STATUS.done;
 
   return (
     <Animated.View
@@ -133,43 +147,54 @@ export default memo(function DateCard({
         // Swipe right reveals Edit; swipe left reveals Delete.
         renderLeftActions={(progress) => (
           <SwipeAction
-            label="Edit"
+            label="Editar"
             icon={Pencil}
             progress={progress}
             side="left"
             onPress={() => {
-              swipeableRef.current?.close();
               onEdit(date);
+              swipeableRef.current?.close();
             }}
-            accessibilityLabel={`Edit ${date.title}`}
+            accessibilityLabel={`Editar ${date.title}`}
           />
         )}
         renderRightActions={(progress) => (
           <SwipeAction
-            label="Delete"
+            label="Eliminar"
             icon={Trash2}
             progress={progress}
             side="right"
             emphasis="solid"
             onPress={() => {
-              swipeableRef.current?.close();
               onDelete(date);
+              swipeableRef.current?.close();
             }}
-            accessibilityLabel={`Delete ${date.title}`}
+            accessibilityLabel={`Eliminar ${date.title}`}
           />
         )}
       >
         <Pressable
           onLongPress={() => onShowActions(date)}
           delayLongPress={350}
-          accessibilityHint="Swipe right to edit, swipe left to delete. Long press for both actions."
+          accessibilityHint="Desliza a la derecha para editar y a la izquierda para eliminar. Mantén presionado para ver todas las acciones."
           accessibilityActions={[
-            { name: "edit", label: "Edit date" },
-            { name: "delete", label: "Delete date" },
+            { name: "edit", label: "Editar cita" },
+            {
+              name: done ? "refresh" : "finish",
+              label: done ? "Reabrir cita" : "Finalizar cita",
+            },
+            { name: "delete", label: "Eliminar cita" },
           ]}
           onAccessibilityAction={(event) => {
             if (event.nativeEvent.actionName === "edit") {
               onEdit(date);
+            }
+
+            if (
+              event.nativeEvent.actionName === "finish" ||
+              event.nativeEvent.actionName === "refresh"
+            ) {
+              onToggleStatus(date);
             }
 
             if (event.nativeEvent.actionName === "delete") {
@@ -177,19 +202,54 @@ export default memo(function DateCard({
             }
           }}
         >
-          <Card className="gap-0 rounded-xl py-0 shadow-none">
+          <Card
+            className={cn(
+              "gap-0 rounded-xl py-0 shadow-none",
+              done && "bg-secondary"
+            )}
+          >
             <View className="gap-2.5 p-4">
               <View className="flex-row items-start gap-3">
-                <View className="h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                  <Text className="text-sm font-bold uppercase leading-none text-primary-foreground">
+                <View
+                  className={cn(
+                    "h-9 w-9 items-center justify-center rounded-lg",
+                    done ? "border border-border bg-background" : "bg-primary"
+                  )}
+                >
+                  <Text
+                    className={cn(
+                      "text-sm font-bold uppercase leading-none",
+                      done ? "text-muted-foreground" : "text-primary-foreground"
+                    )}
+                  >
                     {date.letter}
                   </Text>
                 </View>
 
                 <View className="flex-1 gap-1">
-                  <CardTitle className="text-base leading-snug">
-                    {date.title}
-                  </CardTitle>
+                  <View className="flex-row items-start gap-2">
+                    <CardTitle
+                      className={cn(
+                        "flex-1 text-base leading-snug",
+                        done && "text-muted-foreground"
+                      )}
+                    >
+                      {date.title}
+                    </CardTitle>
+
+                    {done && (
+                      <View className="flex-row items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5">
+                        <Icon
+                          as={Check}
+                          size={11}
+                          className="text-muted-foreground"
+                        />
+                        <Text className="text-[10px] font-semibold uppercase text-muted-foreground">
+                          Hecha
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <CardDescription>{date.description}</CardDescription>
                 </View>
               </View>
